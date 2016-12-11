@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <script src="https://code.onilabs.com/sjs/unstable/stratified.js"></script>
+    <script type="text/sjs">
+
+      //----------------------------------------------------------------------
+      // customize loading of extensions 'js' from the hub 'my-custom-hub:' :
+      
+      var standard_js_compiler = require.extensions['js'];
+      var sjs_compiler = require.extensions['sjs'];
+      
+      require.extensions['js'] = function(src, descriptor) {
+        if (descriptor.id.indexOf('my-custom-hub:') === 0)
+          return sjs_compiler(src, descriptor)
+        else
+          return standard_js_compiler(src, descriptor);
+      }
+
+      //----------------------------------------------------------------------
+      // add a 'my-custom-hub:' that loads the file in whichever way you want:
+
+      function loadFromMyCustomHub(path) {
+      
+        path = path.replace('my-custom-hub:', 'http:');
+
+        return {
+          src: require('sjs:http').get(path, {mime:'text/plain'}),
+          loaded_from: path
+        };
+      }
+
+      require.hubs.push(['my-custom-hub:', {src: loadFromMyCustomHub}]);
+
+
+      //----------------------------------------------------------------------
+      // now we can load js files from 'my-custom-hub:' as sjs:
+
+      require('my-custom-hub:./serve-as-sjs.js');
+
+    </script>
+  </head>
+</html>
